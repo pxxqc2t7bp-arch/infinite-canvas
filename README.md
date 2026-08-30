@@ -63,7 +63,7 @@
 - 无限画布：多画布项目、节点拖拽缩放、连线、小地图、撤销重做、导入导出。
 - AI 创作：浏览器前台直连你配置的 OpenAI 兼容接口，支持文生图、图生图、参考图编辑、文本问答、音频和视频生成。
 - 画布助手：围绕选中节点和上游节点对话、生图，并把结果插回画布。
-- 本地 Agent：通过本机 Canvas Agent 连接 Codex / Claude Code，让 Agent 通过 MCP 操作当前画布；
+- 本地 Agent：通过本机 Canvas Agent 同时连接 Codex、ZCode、TraeCode / Claude Code，让多个 Agent 通过 MCP 安全并行操作当前画布，并支持群发任务与主从协作；
 - Codex App 插件：提供 Codex app 插件，安装后会自动注册 MCP 并尝试拉起本地 Agent。
 - 插件系统：支持通过 URL 动态安装 / 启用 / 更新 / 卸载远程节点插件，并提供 TypeScript SDK 自行开发画布节点插件。
 - 自定义接口调用：可自定义生图 / 视频接口的调用方式，灵活适配各类中转站与自建服务。
@@ -100,6 +100,18 @@ docker compose up -d
 首次打开后进入右上角配置，填入自己的 OpenAI 兼容 `Base URL` 和 `API Key`。
 
 如果默认的OpenAI接口调用方式与您的API不同，可自定义生图/视频脚本调用。
+
+### New API 集成
+
+本 fork 支持通过 URL fragment 从 New API 安全导入当前用户的 Base URL 和 API Key，fragment 不会发送到 Web 服务器：
+
+```text
+https://canvas.example.com/#source=newapi&baseUrl=https%3A%2F%2Fapi.example.com%3A10443&apiKey={key}
+```
+
+首次连接会读取该 Token 可见的模型并自动分类文本、Seedream 图片、Seedance 视频和 TTS 模型。后续连接只更新凭据，不覆盖用户已有的模型配置和画布数据。
+
+Seedream 参考图编辑使用 `/v1/images/generations` 的 JSON `image` 字段；Seedream 5.0 Pro 蒙版编辑会把选区转换为 `<bbox>` 空间指令。Seedance 文生视频和图生视频使用 New API `/v1/videos` 的 JSON 请求格式。
 
 ## 效果展示
 
