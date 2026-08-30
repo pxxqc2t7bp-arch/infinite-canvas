@@ -18,7 +18,7 @@ export function checkVersions() {
     if (!localCodexVersion) {
         logger.warn("Local Codex was not found. Install the latest version with: npm install -g @openai/codex@latest");
     } else if (localCodexVersion !== CODEX_VERSION) {
-        logger.warn(`Bundled Codex ${CODEX_VERSION} does not match local Codex ${localCodexVersion}. Keep both current with: npm install -g @openai/codex@latest && npx -y @pxxqc2t7bp-arch/canvas-agent@latest`);
+        logger.warn(`Bundled Codex ${CODEX_VERSION} does not match local Codex ${localCodexVersion}. Keep both current with: npm install -g @openai/codex@latest && npm exec --yes --package=@pxxqc2t7bp-arch/canvas-agent@latest -- canvas-agent`);
     }
     void checkLatestVersions(localCodexVersion);
 }
@@ -30,8 +30,8 @@ async function checkLatestVersions(localCodexVersion: string) {
             npmVersion("@pxxqc2t7bp-arch/canvas-agent"),
             npmVersion("@openai/codex"),
         ]);
-        if (isOlder(VERSION, latestAgent)) logger.warn(`Update available: Canvas Agent ${VERSION} -> ${latestAgent}. Run: npx -y @pxxqc2t7bp-arch/canvas-agent@latest`);
-        if (isOlder(CODEX_VERSION, latestCodex)) logger.warn(`Update available: bundled Codex ${CODEX_VERSION} -> ${latestCodex}. Upgrade Canvas Agent with: npx -y @pxxqc2t7bp-arch/canvas-agent@latest`);
+        if (isOlder(VERSION, latestAgent)) logger.warn(`Update available: Canvas Agent ${VERSION} -> ${latestAgent}. Run: npm exec --yes --package=@pxxqc2t7bp-arch/canvas-agent@latest -- canvas-agent`);
+        if (isOlder(CODEX_VERSION, latestCodex)) logger.warn(`Update available: bundled Codex ${CODEX_VERSION} -> ${latestCodex}. Upgrade Canvas Agent with: npm exec --yes --package=@pxxqc2t7bp-arch/canvas-agent@latest -- canvas-agent`);
         if (localCodexVersion && isOlder(localCodexVersion, latestCodex)) logger.warn(`Update available: local Codex ${localCodexVersion} -> ${latestCodex}. Run: npm install -g @openai/codex@latest`);
     } catch {
         logger.warn("Unable to check the latest npm versions; startup will continue.");
