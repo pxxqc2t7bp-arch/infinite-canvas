@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 concurrency:
   group: publish-canvas-agent-${{ github.ref }}
@@ -31,7 +32,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: https://registry.npmjs.org
+          registry-url: https://npm.pkg.github.com
+          scope: "@pxxqc2t7bp-arch"
           cache: npm
           cache-dependency-path: canvas-agent/package-lock.json
 
@@ -43,29 +45,33 @@ jobs:
       - id: package
         name: Check package version
         shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           package="$(node -p "require('./package.json').name")"
           version="$(node -p "require('./package.json').version")"
           echo "name=$package" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          if npm view "$package@$version" version >/dev/null 2>&1; then
+          if npm view "$package@$version" version --registry=https://npm.pkg.github.com >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Publish package
-        if: github.event_name == 'push' && github.repository == 'basketikun/infinite-canvas' && steps.package.outputs.exists == 'false'
+        if: github.event_name == 'push' && github.repository == 'pxxqc2t7bp-arch/infinite-canvas' && steps.package.outputs.exists == 'false'
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm publish --access public
 
       - name: Verify published version
-        if: github.event_name == 'push' && github.repository == 'basketikun/infinite-canvas' && steps.package.outputs.exists == 'false'
+        if: github.event_name == 'push' && github.repository == 'pxxqc2t7bp-arch/infinite-canvas' && steps.package.outputs.exists == 'false'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
           for attempt in {1..12}; do
-            published="$(npm view "${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }}" version 2>/dev/null || true)"
+            published="$(npm view "${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }}" version --registry=https://npm.pkg.github.com 2>/dev/null || true)"
             if [ "$published" = "${{ steps.package.outputs.version }}" ]; then
               exit 0
             fi

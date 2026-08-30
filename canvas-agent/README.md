@@ -2,16 +2,25 @@
 
 本地 Canvas Agent 用来连接画布网页和用户电脑上的 Codex / Claude Code。本地开发时优先连接 `http://localhost:3000`，不需要先使用线上站点。
 
+个人发行版发布在 GitHub Packages。首次使用前，需要为当前机器配置一次读取权限：
+
+```ini
+@pxxqc2t7bp-arch:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
+```
+
+token 只需要 `read:packages`，且 `~/.npmrc` 应限制为当前用户可读写。不要把 token 提交到仓库。
+
 ## 启动
 
 ```bash
-npx -y @basketikun/canvas-agent
+npx -y @pxxqc2t7bp-arch/canvas-agent
 ```
 
 需要排查连接、线程、Codex app-server 或工具调用问题时，可开启 Debug 模式：
 
 ```bash
-npx -y @basketikun/canvas-agent --debug
+npx -y @pxxqc2t7bp-arch/canvas-agent --debug
 ```
 
 Debug 日志会以 `[DEBUG][HH:mm:ss]` 等传统格式输出到终端，并按启动日期保存到 `~/.infinite-canvas/logs/canvas-agent-YYYY-MM-DD.log`。终端日志带级别颜色，文件日志为纯文本；日志包含 HTTP、SSE、线程、turn、Codex app-server 和工具调用事件，token 与图片 Data URL 会自动隐藏。
@@ -40,15 +49,15 @@ Canvas Agent 默认只监听 `127.0.0.1`。网页带正确 token 连接后，Can
 
 ## 发布
 
-`canvas-agent` 使用自己的 `package.json` 版本号，不跟仓库根目录 `VERSION` 绑定。涉及 `canvas-agent` 的 PR 会执行测试、构建和打包检查；推送到上游仓库 `main` 后，GitHub Actions 会检查 npm 上是否已经存在当前包版本，不存在时才发布 `@basketikun/canvas-agent`。
+`canvas-agent` 使用自己的 `package.json` 版本号，不跟仓库根目录 `VERSION` 绑定。涉及 `canvas-agent` 的 PR 会执行测试、构建和打包检查；推送到个人 fork `main` 后，GitHub Actions 会检查 GitHub Packages 中是否已经存在当前包版本，不存在时才发布 `@pxxqc2t7bp-arch/canvas-agent`。
 
-发布前需要在 GitHub 仓库 Secrets 中配置 `NPM_TOKEN`。
+发布使用仓库自带的 `GITHUB_TOKEN` 和 `packages: write` 权限，不需要额外保存 npm token。
 
 ## Codex MCP
 
 如果希望 Codex 终端能直接操作画布，需要先把 Canvas Agent 注册成 Codex MCP。
 
-直接运行 `npx -y @basketikun/canvas-agent` 只启动本地 Agent 服务，不会安装 MCP，也不会增加 Codex 工具上下文。只有安装 Codex app 插件，或手动执行 `codex mcp add` 后，`infinite-canvas` 工具才会进入 Codex 上下文；由于工具较多，不使用时建议移除。
+直接运行 `npx -y @pxxqc2t7bp-arch/canvas-agent` 只启动本地 Agent 服务，不会安装 MCP，也不会增加 Codex 工具上下文。只有安装 Codex app 插件，或手动执行 `codex mcp add` 后，`infinite-canvas` 工具才会进入 Codex 上下文；由于工具较多，不使用时建议移除。
 
 通过插件安装时移除插件：
 
@@ -77,7 +86,7 @@ codex plugin add infinite-canvas@infinite-canvas-local
 插件默认通过 npm 启动 MCP；这个命令只提供 MCP 工具，不会把 MCP 写入全局配置，也不会在退出时自动卸载：
 
 ```bash
-npx -y @basketikun/canvas-agent mcp --agent codex --name Codex
+npx -y @pxxqc2t7bp-arch/canvas-agent mcp --agent codex --name Codex
 ```
 
 使用时可以直接在 Codex 里说“打开 Infinite Canvas”，插件会启动本地 Agent，读取 Local URL 和 Connect token，然后在右侧打开 `https://canvas.best/` 并自动新建、连接画布；只有明确要求使用本地项目时才会启动本地前端。
@@ -85,7 +94,7 @@ npx -y @basketikun/canvas-agent mcp --agent codex --name Codex
 Canvas Agent 启动后，给 Codex 添加 MCP：
 
 ```bash
-codex mcp add infinite-canvas -- npx -y @basketikun/canvas-agent mcp --agent codex --name Codex
+codex mcp add infinite-canvas -- npx -y @pxxqc2t7bp-arch/canvas-agent mcp --agent codex --name Codex
 ```
 
 本仓库开发时可以改成，实际使用建议替换为本机绝对路径：
@@ -101,7 +110,7 @@ Canvas Agent 源码使用 TypeScript 编写，MCP 协议层使用官方 `@modelc
 ```toml
 [mcp_servers.infinite-canvas]
 command = "npx"
-args = ["-y", "@basketikun/canvas-agent", "mcp", "--agent", "codex", "--name", "Codex"]
+args = ["-y", "@pxxqc2t7bp-arch/canvas-agent", "mcp", "--agent", "codex", "--name", "Codex"]
 default_tools_approval_mode = "approve"
 ```
 
@@ -148,7 +157,7 @@ Claude Code Adapter 代码暂时保留，但当前网页侧边栏只开放 Codex
 如果希望 Claude Code 也能操作画布，需要给 Claude Code 添加同一个 MCP。建议用 user scope，避免 Canvas Agent 从不同目录启动时找不到配置：
 
 ```bash
-claude mcp add --scope user --transport stdio infinite-canvas -- npx -y @basketikun/canvas-agent mcp --agent claude --name "Claude Code"
+claude mcp add --scope user --transport stdio infinite-canvas -- npx -y @pxxqc2t7bp-arch/canvas-agent mcp --agent claude --name "Claude Code"
 ```
 
 本仓库开发时可以改成：
